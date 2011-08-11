@@ -8,14 +8,14 @@ declare -i depth=0
 print() {
 	local len=0
 	let len=0$depth*3
-	echo "$(printf '%*s' $len)$*" 2>&1
-	echo "$(printf '%*s' $len)$*" 2>&1 | log_writer "log.log"
+	echo "$(printf '%*s' $len)$*" 
+	echo "$(printf '%*s' $len)$*" | log_writer "log.log"
 }
 debug() {
-	print "$*"
+	print "$*" 2>&1
 }
 trace() {
-	print "$*"
+	print "$*" 2>&1
 }
 error() {
 	local ERR=$1
