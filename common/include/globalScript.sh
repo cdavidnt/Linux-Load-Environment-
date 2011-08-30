@@ -30,7 +30,8 @@ error() {
 call() {
 	local FUNCTION_NAME=$1
 	local PARM_TYPE="$(type -t $FUNCTION_NAME)"
-	if [ "$PARM_TYPE" == "function"  ] || [ "$PARM_TYPE" == "file" ] ; then		
+
+	if [ "$PARM_TYPE" == "function" ] || [ "$PARM_TYPE" == "file" ]; then			
 		shift
 		debug "[INICIANDO $PARM_TYPE]   $FUNCTION_NAME($*)"
 		let "depth += 1"
@@ -40,9 +41,10 @@ call() {
 	fi
 }
 call_redirect() {
-	local FUNCTION_NAME=$1
-	local PARM_TYPE="$(type -t $FUNCTION_NAME)"
-	if [ "$PARM_TYPE" == "function"  ] || [ "$PARM_TYPE" == "file" ] ; then		
+        local FUNCTION_NAME=$1
+        local PARM_TYPE="$(type -t $FUNCTION_NAME)"
+        
+        if [ "$PARM_TYPE" == "function" ] || [ "$PARM_TYPE" == "file" ]; then  
 		shift
 		debug "[INICIANDO $PARM_TYPE]   $FUNCTION_NAME($*)"
 		let "depth += 1"
@@ -92,6 +94,7 @@ define_path_once() {
 define_once() {
 	local VARNAME="$1"
 	local VALUE="$(get_var $VARNAME)"
+	trace "varname eh $VARNAME"
 	if [ "$VALUE" == "" ] ; then
 		define $*
 	else
@@ -219,12 +222,13 @@ java_variables() {
 	define_once MAVEN_HOME "$MVN_HOME"
 	define_once MAVEN_HOME "$M2_HOME"
 	if [ ! -e "$MAVEN_HOME/bin/mvn" ]; then
+		trace "nao existe"
 		define_path MAVEN_HOME $(cd "$(dirname "$(which mvn)")/.." && pwd)
 	fi
 	define_path MAVEN_BIN "$MAVEN_HOME/bin/mvn"
 
 	# Definir configuracoes do java
-	define JAVA_OPTS "-Xmx512m -Xms512m"
+	define JAVA_OPTS "-XX:MaxPermSize=256m -Xmx512m -Xms512m -XX:MaxPermSize=256m"
 	define JAVA_DEBUG "n"
 	define JAVA_DEBUG_SUSPEND "n"
 	define JAVA_DEBUG_PORT "8123"
