@@ -1,0 +1,6 @@
+LOG_FILE_NAME 
+{
+	rotate 36500
+	size=1
+	missingok
+}
