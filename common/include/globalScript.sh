@@ -327,7 +327,3 @@ log_tar(){
 	tar zcfP $LOGS_DIR/$TAR_FILE_NAME $LOGS_DIR/$ATUAL_LOG_FOLDER
 	cd "$LOGS_DIR/" && rm -rf $ATUAL_LOG_FOLDER
 }
-
-echo "Inicio"
-ALL_ARGUMENTS=$*
-call 'main' $ALL_ARGUMENTS
