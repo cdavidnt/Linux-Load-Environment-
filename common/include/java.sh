@@ -24,8 +24,6 @@ java_variables() {
 	define JAVA_DEBUG_SUSPEND "n"
 	define JAVA_DEBUG_PORT "8123"
 	
-
-	
 	call "on_java_variables"
 }
 
