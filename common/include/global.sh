@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "iniciando global.sh"
 #-------------------
 #- FUNÇÕES MÁGICAS -
 #-------------------
@@ -175,8 +175,8 @@ main() {
 setup() {
 	call "before_setup"
 	call "global_variables" $*
-	call "log_variables"
 	call "java_variables"
+	call "log_variables"
 	call "pre_log"
 	do_log
 	call "after_setup"

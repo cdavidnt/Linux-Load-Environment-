@@ -1,3 +1,4 @@
+echo "iniciando localScript.sh"
 . $(cd $(dirname $0) && pwd)/../../common/include/java.sh $*
 
 on_java_variables(){

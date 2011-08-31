@@ -1,7 +1,9 @@
+echo "iniciando java.sh"
+
 #---------------------------------------
 #----- FUNÇÕES PARA EXECUÇÃO JAVA ------
 #---------------------------------------
-. $(cd $(dirname $0) && pwd)/../../common/include/java.sh $*
+. $(cd $(dirname $0) && pwd)/../../common/include/global.sh $*
 
 java_variables() {
 	# Detectar a JDK caso esteja definido
@@ -27,7 +29,8 @@ java_variables() {
 	# Variaveis de aplicativo
 	define APPS_DIR "$SCRIPT_PATH/../apps"
 	define APP_TYPE "$1"
-	define APP "fastseguros-"$APP_TYPE
+#	define APP "fastseguros-"$APP_TYPE
+	define APP "fastseguros-web"
 	define APP_DIR "$APPS_DIR/$APP"
 	
 	call "on_java_variables"
