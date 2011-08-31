@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #-------------------
 #- FUNÇÕES MÁGICAS -
 #-------------------
@@ -135,7 +134,7 @@ help_variables() {
 }
 
 help() {
-	print "Usage: $SCRIPT_NAME ($COMMANDS) APPLICATION NAME"
+	print "Usage: $SCRIPT_NAME ($COMMANDS)"
 }
 
 main() {
@@ -175,8 +174,10 @@ main() {
 setup() {
 	call "before_setup"
 	call "global_variables" $*
-	call "log_variables"
 	call "java_variables"
+	call "app_variables"
+	call "log_variables"
+	call "check_mandatory_variables"
 	call "pre_log"
 	do_log
 	call "after_setup"
@@ -185,7 +186,6 @@ setup() {
 pre_start() {
 	call "on_pre_start"
 	call "pre_java_start"
-	call "log_rotate_template_generator"
 }
 
 start() {
@@ -203,6 +203,19 @@ post_stop() {
 	call "on_post_stop"
 	call "log_variables_on_stop"
 	call "log_tar"
+}
+
+check_path(){
+	if [ "$1" == "" ]; then
+		error 1 "A variável $2 não foi definida no arquivo da aplicação"
+	elif [ ! -e $1 ]; then
+		error 1 "O caminho $1 definido na variavel $2 não é valido"
+	fi
+}
+
+check_mandatory_variables() {
+	check_path "$APPS_DIR" "\$APPS_DIR"
+	check_path "$APP_DIR" "\$APP_DIR"
 }
 
 
@@ -247,11 +260,20 @@ log_rotate_template_generator(){
 }
 
 pre_log() {
+	call "check_log_folder"
+	call "log_rotate_template_generator"
+
 	if [ -e $LOGS_DIR/$LOG ]; then
 		find $LOGS_DIR -name "$LOG*" | while read log_file
 		do
 		 	base_rm "$log_file"
 		done
+	fi
+}
+
+check_log_folder() {
+	if [ ! -d $LOGS_DIR ]; then
+		cd $AMBIENTE_PATH && mkdir "logs"
 	fi
 }
 
