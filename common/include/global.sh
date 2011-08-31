@@ -9,9 +9,10 @@ print() {
 	local len=0
 	let len=0$depth*3
 	whitespace="$(printf '%*s' $len)$*"
-	echo "$whitespace"
 	if [ $logging -eq 1 ]; then
 		echo "$whitespace" | log_writer "$LOGS_DIR/$LOG"
+	else
+		echo "$whitespace"
 	fi
 }
 debug() {
@@ -34,23 +35,39 @@ call() {
 		shift
 		debug "[INICIANDO $PARM_TYPE]   $FUNCTION_NAME($*)"
 		let "depth += 1"
-		$FUNCTION_NAME $*
+		if [ "$PARM_TYPE" == "function" ]; then
+			$FUNCTION_NAME $*
+		else
+			$FUNCTION_NAME $* 2>&1 | log_writer "$LOGS_DIR/$LOG"
+		fi
 		let "depth -= 1"
 		debug "[FINALIZANDO $PARM_TYPE] $FUNCTION_NAME"
 	fi
 }
-call_redirect() {
-        local FUNCTION_NAME=$1
-        local PARM_TYPE="$(type -t $FUNCTION_NAME)"
-        
-        if [ "$PARM_TYPE" == "function" ] || [ "$PARM_TYPE" == "file" ]; then  
-		shift
-		debug "[INICIANDO $PARM_TYPE]   $FUNCTION_NAME($*)"
-		let "depth += 1"
-		$FUNCTION_NAME $* 2>&1 | log_writer "$LOGS_DIR/$LOG"
-		let "depth -= 1"
-		debug "[FINALIZANDO $PARM_TYPE] $FUNCTION_NAME"
+
+add_on_event() {
+	local eventName=$1
+	local currentEvents=${events[$eventName]}
+	if [ "$currentEvents" == "" ]; then
+		events[$eventName]="$2"
+	else	
+		events[$eventName]="$currentEvents;$2"
 	fi
+	trace "[ASSOCIANDO ao evento '$eventName'] '$2'"
+}
+
+call_event() {
+	local eventName=$1
+	local arr=$(echo ${events[$eventName]} | tr ";" "\n")
+	trace "[INICIANDO evento '$eventName']"
+	shift
+	let "depth += 1"
+	for x in $arr
+	do
+		call "$x" $*
+	done
+	let "depth -= 1"
+	trace "[FINALIZANDO evento '$eventName']"	
 }
 
 get_var() {
@@ -93,7 +110,6 @@ define_path_once() {
 define_once() {
 	local VARNAME="$1"
 	local VALUE="$(get_var $VARNAME)"
-	trace "varname eh $VARNAME"
 	if [ "$VALUE" == "" ] ; then
 		define $*
 	else
@@ -112,7 +128,6 @@ base_rm(){
 	trace "[REMOVENDO] $*"
 	rm -rf "$*"
 }
-
 
 #--------------------------------------
 #- SECÃO DE FUNÇÕES BASICAS DO SCRIPT -
@@ -138,10 +153,12 @@ help() {
 }
 
 main() {
-	call help_variables
+	add_on_event "inicioScript" "help_variables"
+	add_on_event "inicioScript" "setup"
+
 	define ACTION $1
 	shift
-	call "setup" $*
+	call_event "inicioScript" $*
 	case $ACTION in
 		start) 
 			trap "post_stop $*" 0 SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
@@ -171,7 +188,8 @@ main() {
 	esac
 }
 
-setup() {
+setup() {	
+#	call_event 
 	call "before_setup"
 	call "global_variables" $*
 	call "java_variables"
@@ -180,7 +198,6 @@ setup() {
 	call "check_mandatory_variables"
 	call "pre_log"
 	do_log
-	call "after_setup"
 }
 
 pre_start() {
@@ -245,6 +262,7 @@ log_writer() {
 	IFS=¬
 	let contador=0;
 	while read LINE; do
+		echo "$LINE"
 		echo "$LINE" >> $1
 		let contador=$(expr $contador + 1)
 		if [ $contador -eq 10 ]; then	
