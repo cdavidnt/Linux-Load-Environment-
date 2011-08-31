@@ -1,7 +1,7 @@
 #---------------------------------------
 #----- FUNÇÕES PARA EXECUÇÃO JAVA ------
 #---------------------------------------
-. $(cd $(dirname $0) && pwd)/global.sh $*
+. $(cd $(dirname $0) && pwd)/../../common/include/java.sh $*
 
 java_variables() {
 	# Detectar a JDK caso esteja definido
