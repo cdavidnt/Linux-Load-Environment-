@@ -158,7 +158,7 @@ main() {
 	call_event "inicioScript"
 	define ACTION $1
 	shift
-	call "setup" $*
+	call "setup"
 	case $ACTION in
 		start) 
 			trap "post_stop $*" 0 SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
