@@ -49,6 +49,8 @@ call() {
 add_on_event() {
 	local eventName=$1
 	local currentEvents=${events[$eventName]}
+		echo "Event Name = $eventName"
+	echo "Events: ${events[$eventName]}"
 	if [ "$currentEvents" == "" ]; then
 		events[$eventName]="$2"
 	else	
@@ -59,6 +61,8 @@ add_on_event() {
 
 call_event() {
 	local eventName=$1
+	echo "Event Name = $eventName"
+	echo "Events: ${events[$eventName]}"
 	local arr=$(echo ${events[$eventName]} | tr ";" "\n")
 	trace "[INICIANDO evento '$eventName']"
 	shift
@@ -154,6 +158,7 @@ help() {
 }
 
 main() {
+	call_event "af"
 	add_on_event "inicioScript" "help_variables"
 	call_event "inicioScript"
 	define ACTION $1
