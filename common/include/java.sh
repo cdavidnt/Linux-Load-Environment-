@@ -13,7 +13,6 @@ java_variables() {
 	define_once MAVEN_HOME "$MVN_HOME"
 	define_once MAVEN_HOME "$M2_HOME"
 	if [ ! -e "$MAVEN_HOME/bin/mvn" ]; then
-		trace "nao existe"
 		define_path MAVEN_HOME $(cd "$(dirname "$(which mvn)")/.." && pwd)
 	fi
 	define_path MAVEN_BIN "$MAVEN_HOME/bin/mvn"
@@ -39,7 +38,7 @@ maven() {
 
 	define JAVA_DEBUG n
 
-	cd $APP_DIR && call_redirect $MAVEN_BIN $*
+	cd $APP_DIR && call $MAVEN_BIN $*
 }
 
 pre_java_start() {
@@ -57,3 +56,5 @@ java_start() {
 	#executa o projeto
 	call maven $MAVEN_JAVA_START
 }
+
+add_on_event "variables" "java_variables"
