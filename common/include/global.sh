@@ -98,7 +98,7 @@ define_path() {
 }
 require_path() {
 	if [ ! -e "$1" ]; then
-		error 1 "O PATH '$1' NAO EXISTE!"
+		error 1 "O caminho $1 definido na variavel $2 não é valido"
 	fi
 }
 define_path_once() {
@@ -108,7 +108,7 @@ define_path_once() {
 		define_path $*
 	else
 		trace "[PATH] $VARNAME não foi substituida. '$VARNAME'='$VALUE'"
-		require_path "$VALUE"
+		require_path "$VALUE" "\$VALUE"
 	fi
 }
 
@@ -158,7 +158,6 @@ help() {
 }
 
 main() {
-	call_event "af"
 	add_on_event "inicioScript" "help_variables"
 	call_event "inicioScript"
 	define ACTION $1
@@ -203,13 +202,11 @@ setup() {
 }
 
 pre_start() {
-	call "on_pre_start"
-	call "pre_java_start"
+	call_event "on_pre_start"
 }
 
 start() {
-	call "on_start"
-	call "java_start"
+	call_event "on_start"
 }
 
 before_post_stop(){
@@ -218,23 +215,14 @@ before_post_stop(){
 
 post_stop() {
 	do_log
-	call "before_post_stop"
-	call "on_post_stop"
-	call "log_variables_on_stop"
-	call "log_tar"
-}
-
-check_path(){
-	if [ "$1" == "" ]; then
-		error 1 "A variável $2 não foi definida no arquivo da aplicação"
-	elif [ ! -e $1 ]; then
-		error 1 "O caminho $1 definido na variavel $2 não é valido"
-	fi
+	add_on_event "on_post_stop" "log_tar"
+	add_on_event "on_post_stop" "log_variables_on_stop"
+	call_event "on_post_stop"
 }
 
 check_mandatory_variables() {
-	check_path "$APPS_DIR" "\$APPS_DIR"
-	check_path "$APP_DIR" "\$APP_DIR"
+	require_path "$APPS_DIR" "\$APPS_DIR"
+	require_path "$APP_DIR" "\$APP_DIR"
 }
 
 

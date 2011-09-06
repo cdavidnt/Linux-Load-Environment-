@@ -58,3 +58,4 @@ java_start() {
 }
 
 add_on_event "variables" "java_variables"
+add_on_event "on_pre_start" "pre_java_start"
