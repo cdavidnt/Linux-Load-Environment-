@@ -31,7 +31,6 @@ error() {
 call() {
 	local FUNCTION_NAME=$1
 	local PARM_TYPE="$(type -t $FUNCTION_NAME)"
-
 	if [ "$PARM_TYPE" == "function" ] || [ "$PARM_TYPE" == "file" ]; then			
 		shift
 		debug "[INICIANDO $PARM_TYPE]   $FUNCTION_NAME($*)"
@@ -48,30 +47,37 @@ call() {
 
 add_on_event() {
 	local eventName=$1
+	local eventToAdd=$2
 	local currentEvents=${events[$eventName]}
-	local addEventBefore=$3
 	if [ "$currentEvents" == "" ]; then
-		events[$eventName]="$2"
+		events[$eventName]="$eventToAdd"
+	else
+		events[$eventName]="$currentEvents;$eventToAdd"
+	fi
+	trace "[ASSOCIANDO ao evento '$eventName'] '$eventToAdd'"
+}
+
+add_on_event_before() {
+	local eventName=$1
+	local eventToAdd=$3
+	local eventBefore=$2
+	local currentEvents=${events[$eventName]}
+	if [ "$currentEvents" == "" ]; then
+		events[$eventName]="$eventToAdd"
 	else	
 		if [ "$addEventBefore" != "" ]; then
-			echo "Eventos ja adicionados $currentEvents"
-			echo "Evento a ser encontrado $3"
-			local positionUntilFind=$(echo $currentEvents | awk '{ print index($0,"'"$addEventBefore"'") }')
-			echo "posicao $positionUntilFind"
-		#	local beforeEvents=$(expr substr $currentEvents 0 $(expr $positionUntilFind - 2))
-		 	local beforeEvents=$(echo | awk '{ print substr("'"$currentEvents"'",0,"'"$(expr $positionUntilFind - 1)"'") }')
-			echo "Before events $beforeEvents"
-	#		currentEvents=
+			error 1 "Não é possivel adicionar o evento $eventToAdd antes do evento $eventBefore"
 		fi
-		events[$eventName]="$currentEvents;$2"
+		local positionUntilEvent=$(echo $currentEvents | awk '{ print index($0,"'"$eventBefore"'") }')
+	 	local beforeEvents=$(echo | awk '{ print substr("'"$currentEvents"'",0,"'"$(expr $positionUntilEvent - 1)"'") }')
+		currentEvents="$beforeEvents;$eventToAdd;$(echo $currentEvents | sed -E "s/$beforeEvents//g")"
+		events[$eventName]="$currentEvents"
 	fi
-	trace "[ASSOCIANDO ao evento '$eventName'] '$2'"
+	trace "[ASSOCIANDO ao evento '$eventName'] '$eventToAdd'"
 }
 
 call_event() {
 	local eventName=$1
-	echo "Event Name = $eventName"
-	echo "Events: ${events[$eventName]}"
 	local arr=$(echo ${events[$eventName]} | tr ";" "\n")
 	trace "[INICIANDO evento '$eventName']"
 	shift
@@ -158,7 +164,7 @@ global_variables() {
 
 help_variables() {
 	call "before_help_variables"
-	define COMMANDS "start|pre_start|post_stop|start_only"	
+	define COMMANDS "start|pre_start|post_stop|start_only|tail|log"	
 	call "after_help_variables"
 }
 
@@ -171,24 +177,31 @@ main() {
 	call_event "inicioScript"
 	define ACTION $1
 	shift
-	call "setup"
 	case $ACTION in
 		start) 
 			trap "post_stop $*" 0 SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+			call "setup"
 			call "pre_start" $*
 			call "start" $*
 		;; 
 		# pre_start utilizado pelo Upstart para chamar somente o evento de pre_start
 		pre_start) 
+			call "setup"
 			call "pre_start" $*
 		;;
 		# post_stop utilizado pelo Upstart para chamar somente o evento de post_stop
 		post_stop) 
+			call "setup"
 			call "post_stop" $*
 		;;
 		# start_only utilizado pelo Upstart para chamar somente o evento de post_stop
 		start_only)
+			call "setup"
 			call "start" $*
+		;;
+		tail) tailLog
+		;;
+		log) openLog
 		;;
 		*)
 		if [ "$(type -t $ACTION)" == "function" ]; then
@@ -201,7 +214,6 @@ main() {
 	esac
 }
 
-#ADICIONAR EVENTOS NO INICIO FORA DE FUNCOES
 setup() {	
 	call_event "variables"
 	call "check_mandatory_variables"
@@ -226,8 +238,21 @@ post_stop() {
 	call_event "on_post_stop"
 }
 
+tailLog() {
+	call_event "variables"
+	local logFile="$LOGS_DIR/$LOG"
+	trace "Iniciando tail de $logFile"
+	tail -f $logFile
+}
 
-#VARIAVEL DEPOIS CAMINHO
+openLog() {
+	call_event "variables"
+	local logFile="$LOGS_DIR/$LOG"
+	trace "Abrindo $logFile"
+	vi $logFile
+}
+
+#TODO = VARIAVEL DEPOIS CAMINHO
 check_mandatory_variables() {
 	require_path "$APPS_DIR" "\$APPS_DIR"
 	require_path "$APP_DIR" "\$APP_DIR"
@@ -245,14 +270,12 @@ dont_log() {
 	define logging 0
 }
 log_variables() {
-	call "before_log_variables"
 	define LOGS_DIR "$SCRIPT_PATH/../logs"
 	define LOG "$APP.console.log"
 	define DATA_START $(date_now)
 	define LOG_ROTATE_CONF "$LOGS_DIR/$APP.rotate"
 	define ATUAL_LOG_FOLDER "$APP""_$DATA_START"
 	define LOG_FOLDER "$LOGS_DIR/$ATUAL_LOG_FOLDER"
-	call "after_log_variables"
 }
 
 log_writer() {
