@@ -23,7 +23,6 @@ java_variables() {
 	define JAVA_DEBUG_SUSPEND "n"
 	define JAVA_DEBUG_PORT "8123"
 	
-	call "on_java_variables"
 }
 
 maven() {
@@ -43,7 +42,6 @@ maven() {
 
 pre_java_start() {
 	define MAVEN_PRE_JAVA_START "-Dapp.name=$APP -Dapp.dir=$APP_DIR clean compile"
-	call "on_pre_java_start"
 
 	#compila os fontes
 	call maven $MAVEN_PRE_JAVA_START
@@ -51,7 +49,6 @@ pre_java_start() {
 
 java_start() {
 	define MAVEN_JAVA_START "-Dapp.name=$APP -Dapp.dir=$APP_DIR -P$AMBIENTE tomcat:run"
-	call "on_java_start"
 
 	#executa o projeto
 	call maven $MAVEN_JAVA_START

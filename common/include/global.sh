@@ -49,12 +49,21 @@ call() {
 add_on_event() {
 	local eventName=$1
 	local currentEvents=${events[$eventName]}
-		echo "Event Name = $eventName"
-	echo "Events: ${events[$eventName]}"
+	local addEventBefore=$3
 	if [ "$currentEvents" == "" ]; then
 		events[$eventName]="$2"
 	else	
-		events[$eventName]="$2;$currentEvents"
+		if [ "$addEventBefore" != "" ]; then
+			echo "Eventos ja adicionados $currentEvents"
+			echo "Evento a ser encontrado $3"
+			local positionUntilFind=$(echo $currentEvents | awk '{ print index($0,"'"$addEventBefore"'") }')
+			echo "posicao $positionUntilFind"
+			local beforeEvents=$(expr substr $currentEvents 0 $(expr $positionUntilFind - 2))
+		# 	local beforeEvents=$(echo | awk '{ print substr("'"$currentEvents"'",0,"'"$(expr $positionUntilFind - 2)"'") }')
+			echo "Before events $beforeEvents"
+	#		currentEvents=
+		fi
+		events[$eventName]="$currentEvents;$2"
 	fi
 	trace "[ASSOCIANDO ao evento '$eventName'] '$2'"
 }
@@ -158,7 +167,7 @@ help() {
 }
 
 main() {
-	add_on_event "inicioScript" "help_variables"
+	
 	call_event "inicioScript"
 	define ACTION $1
 	shift
@@ -192,9 +201,8 @@ main() {
 	esac
 }
 
+#ADICIONAR EVENTOS NO INICIO FORA DE FUNCOES
 setup() {	
-	add_on_event "variables" "log_variables"
-	add_on_event "variables" "global_variables"
 	call_event "variables"
 	call "check_mandatory_variables"
 	call "pre_log"
@@ -215,11 +223,11 @@ before_post_stop(){
 
 post_stop() {
 	do_log
-	add_on_event "on_post_stop" "log_tar"
-	add_on_event "on_post_stop" "log_variables_on_stop"
 	call_event "on_post_stop"
 }
 
+
+#VARIAVEL DEPOIS CAMINHO
 check_mandatory_variables() {
 	require_path "$APPS_DIR" "\$APPS_DIR"
 	require_path "$APP_DIR" "\$APP_DIR"
@@ -296,3 +304,9 @@ log_tar(){
 	tar zcfP $LOGS_DIR/$TAR_FILE_NAME $LOGS_DIR/$ATUAL_LOG_FOLDER
 	cd "$LOGS_DIR/" && rm -rf $ATUAL_LOG_FOLDER
 }
+
+add_on_event "inicioScript" "help_variables"
+add_on_event "variables" "global_variables"
+add_on_event "variables" "log_variables"
+add_on_event "on_post_stop" "log_variables_on_stop"
+add_on_event "on_post_stop" "log_tar"

@@ -10,6 +10,6 @@ on_java_variables(){
 	define JAVA_HOME "/opt/hudson/data/tools/JDK_1.6.0_24"
 }
 
-add_on_event "variables" "app_variables"
+add_on_event "variables" "app_variables" "log_variables"
 
 main $*

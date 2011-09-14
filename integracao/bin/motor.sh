@@ -6,10 +6,11 @@ app_variables(){
 	define APP "fastseguros-motor"
 	define APP_DIR "$APPS_DIR/$APP"
 }
-on_java_variables(){
+bla(){
 	define JAVA_HOME "/opt/hudson/data/tools/JDK_1.6.0_24"
 }
 
 add_on_event "variables" "app_variables"
+add_on_event "variables" "bla"
 
 main $*
