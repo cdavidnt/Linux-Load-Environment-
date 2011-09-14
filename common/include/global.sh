@@ -58,8 +58,8 @@ add_on_event() {
 			echo "Evento a ser encontrado $3"
 			local positionUntilFind=$(echo $currentEvents | awk '{ print index($0,"'"$addEventBefore"'") }')
 			echo "posicao $positionUntilFind"
-			local beforeEvents=$(expr substr $currentEvents 0 $(expr $positionUntilFind - 2))
-		# 	local beforeEvents=$(echo | awk '{ print substr("'"$currentEvents"'",0,"'"$(expr $positionUntilFind - 2)"'") }')
+		#	local beforeEvents=$(expr substr $currentEvents 0 $(expr $positionUntilFind - 2))
+		 	local beforeEvents=$(echo | awk '{ print substr("'"$currentEvents"'",0,"'"$(expr $positionUntilFind - 2)"'") }')
 			echo "Before events $beforeEvents"
 	#		currentEvents=
 		fi
